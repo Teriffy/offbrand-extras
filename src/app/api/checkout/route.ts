@@ -99,7 +99,6 @@ export async function POST(request: NextRequest) {
         stripe_checkout_session_id: session.id,
         status: "pending",
         total_cents: totalCents,
-        currency: "eur",
       })
       .select()
       .single();
