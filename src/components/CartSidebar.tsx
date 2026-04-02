@@ -1,6 +1,7 @@
 "use client";
 
 import { useCart } from "@/contexts/CartContext";
+import { useReservation } from "@/contexts/ReservationContext";
 import { Product } from "@/types/product";
 import { CartItem } from "@/components/CartItem";
 import { useState } from "react";
@@ -13,6 +14,7 @@ interface CartSidebarProps {
 
 export function CartSidebar({ products, isOpen, onClose }: CartSidebarProps) {
   const { items, clearCart } = useCart();
+  const { reservationCode, guestName } = useReservation();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   const cartProducts = items
@@ -28,16 +30,27 @@ export function CartSidebar({ products, isOpen, onClose }: CartSidebarProps) {
   );
 
   const handleCheckout = async () => {
+    if (!reservationCode || !guestName) {
+      alert("Reservation information not found. Please reload the page.");
+      return;
+    }
+
     setIsCheckingOut(true);
     try {
       const response = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items }),
+        body: JSON.stringify({
+          items,
+          reservationCode,
+          guestName,
+        }),
       });
       const data = await response.json();
       if (data.url) {
         window.location.href = data.url;
+      } else if (data.error) {
+        alert(`Checkout failed: ${data.error}`);
       }
     } catch (error) {
       console.error("Checkout error:", error);

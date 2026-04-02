@@ -18,7 +18,7 @@ function SuccessContent() {
 
   useEffect(() => {
     clearCart();
-  }, [clearCart]);
+  }, []);
 
   useEffect(() => {
     if (!sessionId) {

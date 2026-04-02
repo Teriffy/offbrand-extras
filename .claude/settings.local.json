@@ -7,7 +7,15 @@
       "Bash(npm run:*)",
       "Bash(git init:*)",
       "Bash(git add:*)",
-      "Bash(git commit -m \"feat: Initial commit - Prague For You Guest Services Shop:*)"
+      "Bash(git commit -m \"feat: Initial commit - Prague For You Guest Services Shop:*)",
+      "Bash(gh repo:*)",
+      "Bash(supabase link:*)",
+      "Bash(brew install:*)",
+      "Bash(/tmp/init_db.sql:*)",
+      "Read(//tmp/**)",
+      "Bash(pkill -f \"next dev\")",
+      "Bash(git commit -m 'fix: webhook verification and admin products UI improvements:*)",
+      "Bash(git push:*)"
     ]
   }
 }

@@ -7,6 +7,7 @@ export default function AdminProducts() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
   const [formData, setFormData] = useState<Partial<Product>>({});
 
   useEffect(() => {
@@ -28,9 +29,36 @@ export default function AdminProducts() {
   const handleEdit = (product: Product) => {
     setEditingId(product.id);
     setFormData(product);
+    setIsCreating(false);
+  };
+
+  const handleCreateNew = () => {
+    setIsCreating(true);
+    setFormData({ name: "", price_cents: 0, is_available: true });
   };
 
   const handleSave = async () => {
+    if (!editingId && !isCreating) return;
+
+    if (isCreating) {
+      try {
+        const response = await fetch("/api/admin/products", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
+
+        if (response.ok) {
+          await fetchProducts();
+          setIsCreating(false);
+          setFormData({});
+        }
+      } catch (error) {
+        console.error("Failed to create product:", error);
+      }
+      return;
+    }
+
     if (!editingId) return;
 
     try {
@@ -79,7 +107,15 @@ export default function AdminProducts() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-slate-900 mb-8">Products</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold text-slate-900">Products</h1>
+        <button
+          onClick={handleCreateNew}
+          className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+        >
+          + Add Product
+        </button>
+      </div>
 
       {loading && <p>Loading...</p>}
 
@@ -140,10 +176,12 @@ export default function AdminProducts() {
         </div>
       )}
 
-      {editingId && (
+      {(editingId || isCreating) && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h2 className="text-xl font-bold mb-4">Edit Product</h2>
+            <h2 className="text-xl font-bold mb-4">
+              {isCreating ? "Create Product" : "Edit Product"}
+            </h2>
             <div className="space-y-4">
               <input
                 type="text"
@@ -154,18 +192,28 @@ export default function AdminProducts() {
                 }
                 className="w-full px-3 py-2 border border-slate-300 rounded"
               />
-              <input
-                type="number"
-                placeholder="Price (cents)"
-                value={formData.price_cents || ""}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    price_cents: parseInt(e.target.value),
-                  })
-                }
-                className="w-full px-3 py-2 border border-slate-300 rounded"
-              />
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Price (€)
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="e.g., 2.50"
+                  value={
+                    formData.price_cents
+                      ? (formData.price_cents / 100).toFixed(2)
+                      : ""
+                  }
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      price_cents: Math.round(parseFloat(e.target.value) * 100),
+                    })
+                  }
+                  className="w-full px-3 py-2 border border-slate-300 rounded"
+                />
+              </div>
               <label className="flex items-center gap-2">
                 <input
                   type="checkbox"
@@ -188,7 +236,10 @@ export default function AdminProducts() {
                   Save
                 </button>
                 <button
-                  onClick={() => setEditingId(null)}
+                  onClick={() => {
+                    setEditingId(null);
+                    setIsCreating(false);
+                  }}
                   className="flex-1 bg-slate-300 text-slate-900 py-2 rounded hover:bg-slate-400"
                 >
                   Cancel
